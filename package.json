@@ -2,7 +2,7 @@
  "name": "gemini-code-converter",
  "displayName": "Gemini Code Converter",
  "description": "A multi-language code converter powered by Gemini.",
- "version": "0.0.4",
+ "version": "0.0.9",
  "publisher": "SoumyadeepDas",
  "icon": "icon.png",
  "engines": {

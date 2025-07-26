@@ -1,19 +1,13 @@
 import * as vscode from 'vscode';
 
 export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.Uri) {
-    // Get URIs for local resources (highlight.js CSS and JS)
-    // For a real extension, you'd copy these files to a 'media' folder in your project
-    // and use webview.asWebviewUri to get their webview-accessible URIs.
-    // For this example, we'll use CDN links for simplicity, but local files are better for offline use.
-
     // CDN links for highlight.js (choose a style you like)
     const highlightJsCssUri = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css';
     const highlightJsCoreUri = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
-    // Include common languages. You can add more specific ones if needed.
-    const highlightJsLanguagesUri = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js'; // Example language
-    // It's better to load specific languages as needed or use a custom build.
-    // For simplicity, we'll rely on highlightAll() which tries to auto-detect or uses common ones.
 
+    // The entire HTML content is a single template literal.
+    // All JavaScript strings *inside* this HTML that use dynamic values
+    // MUST use standard string concatenation (+) to avoid nesting issues.
     return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -115,6 +109,8 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                 display: flex;
                 flex-direction: column;
                 position: relative;
+                /* Ensure this wrapper takes full height and allows its children to scroll */
+                overflow: hidden; /* Hide overflow of content within the wrapper */
             }
             textarea {
                 flex: 1;
@@ -122,8 +118,8 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                 font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
                 font-size: 13px;
                 background-color: var(--vscode-editorWidget-background);
-                color: var(--vscode-editor-foreground);
-                border: 1px solid var(--vscode-editorWidget-border);
+                color: var(--vscode-input-foreground); /* Use input foreground for consistency */
+                border: 1px solid var(--vscode-input-border); /* Use input border for consistency */
                 border-radius: 8px;
                 resize: none;
                 padding: 15px;
@@ -131,7 +127,7 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                 line-height: 1.5;
                 white-space: pre;
                 word-wrap: normal;
-                overflow: auto;
+                overflow: auto; /* Enable scrolling for the textarea itself */
                 box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
             }
             textarea::placeholder {
@@ -140,21 +136,28 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
             }
 
             /* Styling for the highlighted code block */
-            pre code {
-                display: block;
-                padding: 15px;
-                background: var(--vscode-editorWidget-background); /* Match textarea background */
+            pre { /* Target the pre tag directly for scrolling */
+                flex: 1; /* Allow pre to grow and shrink */
+                min-height: 150px; /* Consistent min-height with textarea */
+                display: flex; /* Use flex to make code fill pre */
+                background: var(--vscode-editorWidget-background);
                 color: var(--vscode-editor-foreground);
-                overflow: auto;
                 border-radius: 8px;
                 border: 1px solid var(--vscode-editorWidget-border);
                 box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
-                height: 100%; /* Ensure it fills the space */
+                overflow: auto; /* Enable scrolling for the pre block */
                 box-sizing: border-box;
+            }
+            pre code {
+                flex: 1; /* Make code fill the pre container */
+                padding: 15px;
                 font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
                 font-size: 13px;
                 line-height: 1.5;
+                white-space: pre; /* Ensure whitespace is preserved */
+                word-wrap: normal; /* Prevent long lines from breaking layout */
             }
+
 
             .copy-button {
                 position: absolute;
@@ -223,7 +226,7 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
     <body>
         <div class="container">
             <div class="header">
-                <div class="title">✨ Gemini Code Converter</div>
+                <div class="title">\u2728 Gemini Code Converter</div>
                 <div class="subtitle">Seamlessly convert code between languages using Google's Gemini AI.</div>
                 <div class="controls">
                     <select id="fromLanguage">
@@ -273,20 +276,20 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
         </div>
 
         <!-- Highlight.js scripts -->
-        <script src="${highlightJsCoreUri}"></script>
+        <script src="${highlightJsCoreUri}"><\/script>
         <!-- Load specific languages you expect, or omit for auto-detection (less reliable) -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/ruby.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/php.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/swift.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/rust.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"><\/script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"><\/script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"><\/script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/ruby.min.js"><\/script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"><\/script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"><\/script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"><\/script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"><\/script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/php.min.js"><\/script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/swift.min.js"><\/script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js"><\/script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/rust.min.js"><\/script>
 
         <script>
             // This script runs in the webview context
@@ -325,7 +328,8 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                     resultCodeEl.textContent = 'Converting... Please wait.'; // Use textContent
                     // Remove previous highlighting classes
                     resultCodeEl.className = 'language-plaintext'; // Reset to plain text before conversion
-                    showMessage(\`Converting from ${from} to ${to}...\`, 'info'); // Escaped backticks
+                    // FIX: Use string concatenation instead of template literal for dynamic message
+                    showMessage('Converting from ' + from + ' to ' + to + '...', 'info');
 
                     vscode.postMessage({
                         command: 'convert',
@@ -373,13 +377,14 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                             resultCodeEl.textContent = message.code; // Set the text content
                             // Set the language class for highlight.js based on 'toLanguage' selection
                             const targetLang = toLanguageEl.value.toLowerCase();
-                            resultCodeEl.className = \`language-${targetLang}\`; // Escaped backticks for template literal
+                            // FIX: Use string concatenation for dynamic class name
+                            resultCodeEl.className = 'language-' + targetLang;
                             hljs.highlightElement(resultCodeEl); // Highlight the specific element
 
                             if (message.code.startsWith('Error:')) {
                                 showMessage('Conversion failed. Check the console for details.', 'error');
                             } else {
-                                showMessage('Conversion complete!', 'info');
+                                showMessage('Conversion complete!', 'info'); // Corrected from showBox to showMessage
                             }
                             break;
                     }
@@ -387,15 +392,21 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
 
                 // Optional: Save and restore webview state
                 const previousState = vscode.getState();
-                if (previousState && previousState.sourceCode) {
-                    sourceCodeEl.value = previousState.sourceCode;
+                if (previousState) { // Check if previousState exists at all
+                    if (previousState.sourceCode) {
+                        sourceCodeEl.value = previousState.sourceCode;
+                    }
+                    // Ensure fromLanguage and toLanguage are safely set from previousState or default
                     fromLanguageEl.value = previousState.fromLanguage || 'C++';
-                    toLanguageEl.value = 'Python'; // Default to Python if not set
+                    toLanguageEl.value = previousState.toLanguage || 'Python'; // Corrected this line
+
                     // Re-highlight if there was previous content
                     if (previousState.resultCode) {
                         resultCodeEl.textContent = previousState.resultCode;
-                        const targetLang = previousState.toLanguage ? previousState.toLanguage.toLowerCase() : 'plaintext'; // Handle undefined targetLang
-                        resultCodeEl.className = \`language-${targetLang}\`; // Escaped backticks
+                        // Safely get targetLang, defaulting to 'plaintext' if previousState.toLanguage is not valid
+                        const targetLang = (previousState.toLanguage && typeof previousState.toLanguage === 'string') ? previousState.toLanguage.toLowerCase() : 'plaintext';
+                        // FIX: Use string concatenation for dynamic class name
+                        resultCodeEl.className = 'language-' + targetLang;
                         hljs.highlightElement(resultCodeEl);
                     }
                 }
@@ -429,7 +440,7 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
                 // Initial highlighting for the placeholder text
                 hljs.highlightElement(resultCodeEl);
             }());
-        </script>
+        <\/script>
     </body>
     </html>`;
 }
